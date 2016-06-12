@@ -3,13 +3,10 @@ declare module "@credo/logger" {
 	
 	// ENUMS
 	// ============================================================================================
-	export type SeverityLevel = 'debug' | 'info' | 'warning' | 'error';
-	export const SeverityLevel: {
-		debug   : SeverityLevel;
-		info    : SeverityLevel;
-		warning : SeverityLevel;
-		error   : SeverityLevel;
-	};
+	export enum SeverityLevel { debug = 1, info, warning, error }
+	export namespace SeverityLevel {
+		export function parse(value: SeverityLevel | string): SeverityLevel;
+	}
 
 	export type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'grey';
 	export const Color: {
@@ -28,7 +25,7 @@ declare module "@credo/logger" {
 	// ============================================================================================
 	export interface Options {
 		name		: string;
-		level?		: SeverityLevel;
+		level?		: SeverityLevel | string;
 		console?	: ConsoleOptions | boolean;
 		telemetry?	: TelemetryOptions;
 	}
@@ -46,7 +43,7 @@ declare module "@credo/logger" {
 	}
 
 	interface ColorOptions {
-		levels?		: { [level: string]: Color; };
+		levels?     : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
 		services?	: { [service: string]: Color; };
 	}
 

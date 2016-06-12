@@ -18,12 +18,27 @@ const DEFAULT_CONSOLE_OPTIONS = {
     prefix: DEFAULT_PREFIX_OPTIONS,
     formats: DEFAULT_FORMAT_OPTIONS
 };
-exports.SeverityLevel = {
-    debug: 'debug',
-    info: 'info',
-    warning: 'warning',
-    error: 'error'
-};
+// ENUMS AND INTERFACES
+// ================================================================================================
+(function (SeverityLevel) {
+    SeverityLevel[SeverityLevel["debug"] = 1] = "debug";
+    SeverityLevel[SeverityLevel["info"] = 2] = "info";
+    SeverityLevel[SeverityLevel["warning"] = 3] = "warning";
+    SeverityLevel[SeverityLevel["error"] = 4] = "error";
+})(exports.SeverityLevel || (exports.SeverityLevel = {}));
+var SeverityLevel = exports.SeverityLevel;
+var SeverityLevel;
+(function (SeverityLevel) {
+    function parse(value) {
+        if (!value)
+            return;
+        if (typeof value === 'number')
+            return value;
+        if (typeof value === 'string')
+            return SeverityLevel[value];
+    }
+    SeverityLevel.parse = parse;
+})(SeverityLevel = exports.SeverityLevel || (exports.SeverityLevel = {}));
 exports.Color = {
     black: 'black',
     red: 'red',
@@ -40,7 +55,7 @@ exports.Color = {
 class Logger {
     constructor(options) {
         this.name = options.name;
-        this.level = options.level || exports.SeverityLevel.debug;
+        this.level = SeverityLevel.parse(options.level) || SeverityLevel.debug;
         if (options.console) {
             const cOptions = typeof options.console === 'boolean'
                 ? DEFAULT_CONSOLE_OPTIONS
@@ -60,11 +75,11 @@ class Logger {
     // Message logging
     // --------------------------------------------------------------------------------------------
     debug(message) {
-        if (this.level > exports.SeverityLevel.debug || !message || typeof message !== 'string')
+        if (this.level > SeverityLevel.debug || !message || typeof message !== 'string')
             return;
         // log to console
         if (this.fOptions) {
-            this.logToConsole(message, exports.SeverityLevel.debug);
+            this.logToConsole(message, SeverityLevel.debug);
         }
         // send to telemetry
         if (this.tClient) {
@@ -72,11 +87,11 @@ class Logger {
         }
     }
     info(message) {
-        if (this.level > exports.SeverityLevel.info || !message || typeof message !== 'string')
+        if (this.level > SeverityLevel.info || !message || typeof message !== 'string')
             return;
         // log to console
         if (this.fOptions) {
-            this.logToConsole(message, exports.SeverityLevel.info);
+            this.logToConsole(message, SeverityLevel.info);
         }
         // send to telemetry
         if (this.tClient) {
@@ -84,11 +99,11 @@ class Logger {
         }
     }
     warn(message) {
-        if (this.level > exports.SeverityLevel.warning || !message || typeof message !== 'string')
+        if (this.level > SeverityLevel.warning || !message || typeof message !== 'string')
             return;
         // log to console
         if (this.fOptions) {
-            this.logToConsole(message, exports.SeverityLevel.warning);
+            this.logToConsole(message, SeverityLevel.warning);
         }
         // send to telemetry
         if (this.tClient) {
@@ -105,7 +120,7 @@ class Logger {
             const message = this.fOptions.errors === 'stack' && error.stack
                 ? error.stack
                 : error.message || 'Unknown error';
-            this.logToConsole(message, exports.SeverityLevel.error);
+            this.logToConsole(message, SeverityLevel.error);
         }
         // send error to telemetry
         if (this.tClient) {
@@ -120,7 +135,7 @@ class Logger {
         // log to console
         if (this.fOptions && this.fOptions.events) {
             const message = (properties ? `${event}: ${JSON.stringify(properties)}` : event);
-            this.logToConsole(message, exports.SeverityLevel.info);
+            this.logToConsole(message, SeverityLevel.info);
         }
         // send to telemetry
         if (this.tClient) {
@@ -134,7 +149,7 @@ class Logger {
             return;
         // log to console
         if (this.fOptions && this.fOptions.metrics) {
-            this.logToConsole(`${metric}=${value}`, exports.SeverityLevel.info);
+            this.logToConsole(`${metric}=${value}`, SeverityLevel.info);
         }
         // send to telemetry
         if (this.tClient) {
@@ -152,7 +167,7 @@ class Logger {
             const message = success
                 ? `[${service}]: executed {${command}} in ${time} ms`
                 : `[${service}]: failed to execute {${command}} in ${time} ms`;
-            this.logToConsole(message, exports.SeverityLevel.info, service);
+            this.logToConsole(message, SeverityLevel.info, service);
         }
         // send to telemetry
         if (this.tClient) {
@@ -168,7 +183,7 @@ class Logger {
             onFinished(response, () => {
                 const format = this.fOptions.requests;
                 const line = buildRequestLine(request, response, since(start), format);
-                this.logToConsole(line, exports.SeverityLevel.info);
+                this.logToConsole(line, SeverityLevel.info);
             });
         }
         // send telemetry
@@ -191,16 +206,16 @@ class Logger {
         }
         // print the message
         switch (level) {
-            case exports.SeverityLevel.debug:
+            case SeverityLevel.debug:
                 console.log(message);
                 break;
-            case exports.SeverityLevel.info:
+            case SeverityLevel.info:
                 console.info(message);
                 break;
-            case exports.SeverityLevel.warning:
+            case SeverityLevel.warning:
                 console.warn(message);
                 break;
-            case exports.SeverityLevel.error:
+            case SeverityLevel.error:
                 console.error(message);
                 break;
         }
@@ -252,7 +267,8 @@ function buildColorizer(optionsOrColor) {
             services: optionsOrColor.services || {}
         };
         return function (message, level, service) {
-            return applyColor(message, options.levels[level] || options.services[service]);
+            const levelString = SeverityLevel[level];
+            return applyColor(message, options.levels[levelString] || options.services[service]);
         };
     }
 }

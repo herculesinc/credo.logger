@@ -26,12 +26,13 @@ const DEFAULT_CONSOLE_OPTIONS: ConsoleOptions = {
 
 // ENUMS AND INTERFACES
 // ================================================================================================
-export type SeverityLevel = 'debug' | 'info' | 'warning' | 'error';
-export const SeverityLevel = {
-    debug       : 'debug' as SeverityLevel,
-    info        : 'info' as SeverityLevel,
-    warning     : 'warning' as SeverityLevel,
-    error       : 'error' as SeverityLevel
+export enum SeverityLevel { debug = 1, info, warning, error }
+export namespace SeverityLevel {
+    export function parse(value: SeverityLevel | string): SeverityLevel {
+        if (!value) return;
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') return SeverityLevel[value];
+    }
 }
 
 export type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'grey';
@@ -49,7 +50,7 @@ export const Color = {
 
 export interface Options {
     name        : string;
-    level?      : SeverityLevel;
+    level?      : SeverityLevel | string;
     console?    : ConsoleOptions | boolean;
     telemetry?  : TelemetryOptions;
 }
@@ -67,7 +68,7 @@ interface PrefixOptions {
 }
 
 interface ColorOptions {
-    levels?     : { [level: string]: Color; };
+    levels?     : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
     services?   : { [service: string]: Color; };
 }
 
@@ -98,7 +99,7 @@ export class Logger {
 
 	constructor(options: Options) {
 		this.name = options.name;
-        this.level = options.level || SeverityLevel.debug;
+        this.level = SeverityLevel.parse(options.level) || SeverityLevel.debug;
 
         if (options.console) {
             const cOptions = typeof options.console === 'boolean'
@@ -338,7 +339,8 @@ function buildColorizer(optionsOrColor: ColorOptions | Color) {
         };
 
         return function(message: string, level: SeverityLevel, service?: string): string {
-            return applyColor(message, options.levels[level] || options.services[service]);
+            const levelString = SeverityLevel[level];
+            return applyColor(message, options.levels[levelString] || options.services[service]);
         };
     }
 }
