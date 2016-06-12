@@ -5,10 +5,10 @@ declare module "@credo/logger" {
 	// ============================================================================================
 	export type SeverityLevel = 'debug' | 'info' | 'warning' | 'error';
 	export const SeverityLevel: {
-    	debug   : SeverityLevel;
-    	info    : SeverityLevel;
-    	warning : SeverityLevel;
-    	error   : SeverityLevel;
+		debug   : SeverityLevel;
+		info    : SeverityLevel;
+		warning : SeverityLevel;
+		error   : SeverityLevel;
 	};
 
 	export type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'grey';
@@ -27,46 +27,46 @@ declare module "@credo/logger" {
 	// ENUMS
 	// ============================================================================================
 	export interface Options {
-		name        : string;
-		level?      : SeverityLevel;
-		console?    : ConsoleOptions | boolean;
-		telemetry?  : TelemetryOptions;
+		name		: string;
+		level?		: SeverityLevel;
+		console?	: ConsoleOptions | boolean;
+		telemetry?	: TelemetryOptions;
 	}
 
 	export interface ConsoleOptions {
-		prefix?    	: PrefixOptions;
+		prefix?		: PrefixOptions;
 		formats?	: FormatOptions;
 		color?		: Color | ColorOptions;
 	}
 
 	export interface PrefixOptions {
-		name?   	: boolean;
-		time?   	: boolean;
-		level?  	: boolean;
+		name?		: boolean;
+		time?		: boolean;
+		level?		: boolean;
 	}
 
 	interface ColorOptions {
-		levels?     : { [level: string]: Color; };
-		services?   : { [service: string]: Color; };
+		levels?		: { [level: string]: Color; };
+		services?	: { [service: string]: Color; };
 	}
 
 	export interface FormatOptions {
 		errors?		: 'message' | 'stack';
-		events?     : boolean;
-		metrics?    : boolean;
-		traces?     : boolean;
+		events?		: boolean;
+		metrics?	: boolean;
+		traces?		: boolean;
 		requests?	: boolean | 'dev' | 'short';
 	}
 
 	export interface TelemetryOptions {
-		provider    : 'appinsights';
-		key         : string;
+		provider	: 'appinsights';
+		key			: string;
 	}
 
 	// LOGGER CLASS
 	// ============================================================================================
 	export class Logger {
-		
+
 		name	: string;
 		level	: SeverityLevel;
 
