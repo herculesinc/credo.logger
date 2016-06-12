@@ -18,7 +18,7 @@
   "dependencies": {
     "applicationinsights": "0.15.x",
     "colors": "1.1.x",
-    "on-finished": "^2.3.0"
+    "on-finished": "2.3.x"
   },
   "devDependencies": {
     "del": "2.2.x",
