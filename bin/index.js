@@ -1,17 +1,28 @@
 "use strict";
 const ApplicationInsights = require('applicationinsights');
 const common_1 = require('./lib/common');
-exports.SeverityLevel = common_1.SeverityLevel;
+exports.MessageLevel = common_1.MessageLevel;
 exports.Color = common_1.Color;
 const ConsoleLogger_1 = require('./lib/ConsoleLogger');
 // RE-EXPORTS
 // ================================================================================================
+// MODULE VARIABLES
+// ================================================================================================
+const DEFAULT_LOGGING_OPTIONS = {
+    messages: common_1.MessageLevel.debug,
+    errors: true,
+    events: true,
+    metrics: true,
+    services: true,
+    requests: true
+};
 // LOGGER CLASS
 // ================================================================================================
 class Logger {
     constructor(options) {
         this.name = options.name;
-        this.level = common_1.SeverityLevel.parse(options.level) || common_1.SeverityLevel.debug;
+        this.options = Object.assign({}, DEFAULT_LOGGING_OPTIONS, options.log);
+        this.options.messages = common_1.MessageLevel.parse(this.options.messages);
         if (options.console) {
             this.cClient = new ConsoleLogger_1.ConsoleLogger(this.name, options.console);
         }
@@ -23,7 +34,9 @@ class Logger {
     // Message logging
     // --------------------------------------------------------------------------------------------
     debug(message) {
-        if (this.level > common_1.SeverityLevel.debug || !message || typeof message !== 'string')
+        if (this.options.messages > common_1.MessageLevel.debug)
+            return;
+        if (!message || typeof message !== 'string')
             return;
         if (this.cClient) {
             this.cClient.debug(message);
@@ -33,7 +46,9 @@ class Logger {
         }
     }
     info(message) {
-        if (this.level > common_1.SeverityLevel.info || !message || typeof message !== 'string')
+        if (!this.options.messages || this.options.messages > common_1.MessageLevel.info)
+            return;
+        if (!message || typeof message !== 'string')
             return;
         if (this.cClient) {
             this.cClient.info(message);
@@ -43,7 +58,9 @@ class Logger {
         }
     }
     warn(message) {
-        if (this.level > common_1.SeverityLevel.warning || !message || typeof message !== 'string')
+        if (!this.options.messages || this.options.messages > common_1.MessageLevel.warning)
+            return;
+        if (!message || typeof message !== 'string')
             return;
         if (this.cClient) {
             this.cClient.warn(message);
@@ -55,7 +72,7 @@ class Logger {
     // Error logging
     // --------------------------------------------------------------------------------------------
     error(error) {
-        if (!error || !(error instanceof Error))
+        if (!this.options.errors || !error || !(error instanceof Error))
             return;
         if (this.cClient) {
             this.cClient.error(error);
@@ -67,7 +84,7 @@ class Logger {
     // Event logging
     // --------------------------------------------------------------------------------------------
     log(event, properties) {
-        if (typeof event !== 'string')
+        if (!this.options.events || typeof event !== 'string')
             return;
         if (this.cClient) {
             this.cClient.log(event, properties);
@@ -79,7 +96,7 @@ class Logger {
     // Metric tracking
     // --------------------------------------------------------------------------------------------
     track(metric, value) {
-        if (!metric || typeof value !== 'number')
+        if (!this.options.metrics || !metric || typeof value !== 'number')
             return;
         if (this.cClient) {
             this.cClient.track(metric, value);
@@ -91,7 +108,9 @@ class Logger {
     // Service tracing
     // --------------------------------------------------------------------------------------------
     trace(service, command, duration, success) {
-        if (typeof service !== 'string' || typeof command !== 'string' || typeof duration !== 'number')
+        if (!this.options.services || typeof duration !== 'number')
+            return;
+        if (!service || typeof service !== 'string' || !command || typeof command !== 'string')
             return;
         success = (typeof success === 'boolean' ? success : true);
         if (this.cClient) {
@@ -104,7 +123,7 @@ class Logger {
     // Request Logging
     // --------------------------------------------------------------------------------------------
     request(request, response) {
-        if (!request || !response)
+        if (!this.options.requests || !request || !response)
             return;
         if (this.cClient) {
             this.cClient.request(request, response);

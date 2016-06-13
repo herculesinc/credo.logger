@@ -3,7 +3,7 @@
 import * as http from 'http';
 import * as colors from 'colors';
 import * as onFinished from 'on-finished';
-import { SeverityLevel, Color } from './common';
+import { MessageLevel, Color } from './common';
 import { since } from './util';
 
 // MODULE VARIABLES
@@ -13,11 +13,8 @@ const DEFAULT_PREFIX_OPTIONS: PrefixOptions = {
 };
 
 const DEFAULT_FORMAT_OPTIONS: FormatOptions = {
-    errors      : 'stack',
-    events      : true,
-    metrics     : true,
-    services    : true,
-    requests    : true
+    error       : 'stack',
+    request     : 'short'
 };
 
 const DEFAULT_CONSOLE_OPTIONS: ConsoleOptions = {
@@ -36,20 +33,29 @@ export interface ConsoleOptions {
 interface PrefixOptions {
     name?       : boolean;
     time?       : boolean;
-    level?      : boolean;
+    stream?     : boolean;
 }
 
 interface ColorOptions {
-    levels?     : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
+    severity?   : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
     services?   : { [service: string]: Color; };
 }
 
 interface FormatOptions {
-    errors?		: 'message' | 'stack';
-    events?     : boolean;
-    metrics?    : boolean;
-    services?   : boolean;
-    requests?	: boolean | 'short' | 'dev';
+    error?		: 'message' | 'stack';
+    request?	: 'short' | 'dev';
+}
+
+enum ConsoleStream {
+    debug = 1, info, warning, error
+}
+
+interface Prefixer {
+    (stream: ConsoleStream, service?: string): string;
+}
+
+interface Colorizer {
+    (message: string, stream: ConsoleStream, service: string): string;
 }
 
 // LOGGER CLASS
@@ -58,9 +64,9 @@ export class ConsoleLogger {
 
     name    : string;
 
-    private fOptions: FormatOptions;
-    private prefixer: (level: SeverityLevel) => string;
-    private colorizer: (message: string, level: SeverityLevel, service: string) => string;
+    private fOptions    : FormatOptions;
+    private prefixer    : Prefixer;
+    private colorizer   : Colorizer;
 
 	constructor(name: string, options: ConsoleOptions | boolean) {
 		this.name = name;
@@ -72,103 +78,90 @@ export class ConsoleLogger {
         this.prefixer   = buildPrefixer(cOptions.prefix, this.name);
         this.colorizer  = buildColorizer(cOptions.color);
         this.fOptions   = Object.assign({}, DEFAULT_FORMAT_OPTIONS, cOptions.formats);
-
-        if (this.fOptions.requests && typeof this.fOptions.requests === 'boolean') {
-            this.fOptions.requests = 'dev';
-        }
 	}
 
     // Message logging
     // --------------------------------------------------------------------------------------------
     debug(message: string) {
-        this.logToConsole(message, SeverityLevel.debug);
+        this.logToConsole(message, ConsoleStream.debug);
     }
 
     info(message: string) {
-        this.logToConsole(message, SeverityLevel.info);
+        this.logToConsole(message, ConsoleStream.info);
     }
 
     warn(message: string) {
-        this.logToConsole(message, SeverityLevel.warning);
+        this.logToConsole(message, ConsoleStream.warning);
     }
 
     // Error logging
     // --------------------------------------------------------------------------------------------
     error(error: Error) {
-        const message = this.fOptions.errors === 'stack' && error.stack
+        const message = this.fOptions.error === 'stack' && error.stack
             ? error.stack
             : error.message || 'Unknown error'; 
-        this.logToConsole(message, SeverityLevel.error);
+        this.logToConsole(message, ConsoleStream.error);
     }
 
     // Event logging
     // --------------------------------------------------------------------------------------------
     log(event: string, properties?: { [key: string]: any }) {
-        if (this.fOptions.events) {
-            const message = (properties ? `${event}: ${JSON.stringify(properties)}` : event);
-            this.logToConsole(message, SeverityLevel.info);
-        }
+        const message = (properties ? `${event}: ${JSON.stringify(properties)}` : event);
+        this.logToConsole(message, ConsoleStream.info);
     }
 
     // Metric tracking
     // --------------------------------------------------------------------------------------------
     track(metric: string, value: number) {
-        if (this.fOptions.metrics) { 
-            this.logToConsole(`[${metric}=${value}]`, SeverityLevel.info);
-        }
+        this.logToConsole(`[${metric}=${value}]`, ConsoleStream.info);
     }
 
     // Service tracing
     // --------------------------------------------------------------------------------------------
     trace(service: string, command: string, duration: number, success: boolean) {
-        if (this.fOptions.services) {
-            const message = success
-                ? `[${service}]: executed [${command}] in ${duration} ms`
-                : `[${service}]: failed to execute [${command}] in ${duration} ms`;
-            this.logToConsole(message, SeverityLevel.info, service);
-        }
+        const message = success
+            ? `executed [${command}] in ${duration} ms`
+            : `failed to execute [${command}] in ${duration} ms`;
+        this.logToConsole(message, ConsoleStream.info, service);
     }
 
     // Request Logging
     // --------------------------------------------------------------------------------------------
     request(request: http.ServerRequest, response: http.ServerResponse) {
-        if (this.fOptions.requests) {
-            const start = process.hrtime();
-            onFinished(response, () => {
-                const format = this.fOptions.requests as string
-                const line = buildRequestLine(request, response, since(start), format);
-                this.logToConsole(line, SeverityLevel.info);
-            });
-        }
+        const start = process.hrtime();
+        onFinished(response, () => {
+            const line = buildRequestLine(request, response, since(start), this.fOptions.request);
+            this.logToConsole(line, ConsoleStream.info);
+        });
     }
 
     // Private Methods
     // --------------------------------------------------------------------------------------------
-    private logToConsole(message: string, level: SeverityLevel, service?: string) {
-        if (!message || !level) return;
+    private logToConsole(message: string, stream: ConsoleStream, service?: string) {
+        if (!message || !stream) return;
 
         // build prefix
         if (this.prefixer) {
-            message = `${this.prefixer(level)}: ${message}`;
+            message = `${this.prefixer(stream, service)}: ${message}`;
         }
 
         // colorize the message
         if (this.colorizer) {
-            message = this.colorizer(message, level, service);
+            message = this.colorizer(message, stream, service);
         }
 
         // print the message
-        switch(level) {
-            case SeverityLevel.debug:
+        switch(stream) {
+            case ConsoleStream.debug:
                 console.log(message);
                 break;
-            case SeverityLevel.info:
+            case ConsoleStream.info:
                 console.info(message);
                 break;
-            case SeverityLevel.warning:
+            case ConsoleStream.warning:
                 console.warn(message);
                 break;
-            case SeverityLevel.error:
+            case ConsoleStream.error:
                 console.error(message);
                 break; 
         }
@@ -177,48 +170,52 @@ export class ConsoleLogger {
 
 // HELPER FUNCTIONS
 // ================================================================================================
-function buildPrefixer(optionsOrFlag: PrefixOptions | boolean, name: string) {
+function buildPrefixer(optionsOrFlag: PrefixOptions | boolean, name: string): Prefixer {
     if (typeof optionsOrFlag === 'boolean') {
         if (!optionsOrFlag) return;
         var options = DEFAULT_PREFIX_OPTIONS;
     }
     else {
         var options: PrefixOptions = Object.assign({}, DEFAULT_PREFIX_OPTIONS, optionsOrFlag);
-        if (!options.time && !options.name && !options.level) return;
+        if (!options.time && !options.name && !options.stream) return;
     }
 
-    return function(level: SeverityLevel) {
+    return function(stream: ConsoleStream, service?: string) {
         let prefix = (options.time ? `[${new Date().toISOString()}]` : '');
         
         if (options.name) {
             prefix += `[${name}]`;
         }
 
-        if (options.level) {
-            prefix += `[${level}]`;
+        if (options.stream) {
+            prefix += `[${ConsoleStream[stream]}]`;
+        }
+
+        if (service) {
+            prefix += `[${service}]`;
         }
 
         return prefix;
     }
 }
 
-function buildColorizer(optionsOrColor: ColorOptions | Color) {
+function buildColorizer(optionsOrColor: ColorOptions | Color): Colorizer {
     if (!optionsOrColor) return;
 
     if (typeof optionsOrColor === 'string') {
-        return function(message: string, level: SeverityLevel, service?: string): string {
+        return function(message: string, stream: ConsoleStream, service?: string): string {
             return applyColor(message, optionsOrColor);
         };
     }
     else {
         const options: ColorOptions = {
-            levels  : optionsOrColor.levels || {},
+            severity: optionsOrColor.severity || {},
             services: optionsOrColor.services || {}
         };
 
-        return function(message: string, level: SeverityLevel, service?: string): string {
-            const levelString = SeverityLevel[level];
-            return applyColor(message, options.levels[levelString] || options.services[service]);
+        return function(message: string, stream: ConsoleStream, service?: string): string {
+            const severity = ConsoleStream[stream];
+            return applyColor(message, options.severity[severity] || options.services[service]);
         };
     }
 }

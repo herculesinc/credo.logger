@@ -2,20 +2,40 @@
 // ================================================================================================
 import * as http from 'http';
 import * as ApplicationInsights from 'applicationinsights';
-import { SeverityLevel, Color } from './lib/common';
+import { MessageLevel, Color } from './lib/common';
 import { ConsoleLogger, ConsoleOptions } from './lib/ConsoleLogger';
 
 // RE-EXPORTS
 // ================================================================================================
-export { SeverityLevel, Color };
+export { MessageLevel, Color };
+
+// MODULE VARIABLES
+// ================================================================================================
+const DEFAULT_LOGGING_OPTIONS: LoggingOptions = {
+    messages	: MessageLevel.debug,
+    errors		: true,
+    events		: true,
+    metrics	    : true,
+    services	: true,
+    requests	: true
+};
 
 // ENUMS AND INTERFACES
 // ================================================================================================
 export interface Options {
     name        : string;
-    level?      : SeverityLevel | string;
+    log?		: LoggingOptions;
     console?    : ConsoleOptions | boolean;
     telemetry?  : TelemetryOptions;
+}
+
+export interface LoggingOptions {
+    messages?	: MessageLevel | string | boolean;
+    errors?		: boolean;
+    events?		: boolean;
+    metrics?	: boolean;
+    services?	: boolean;
+    requests?	: boolean;
 }
 
 interface TelemetryOptions {
@@ -28,14 +48,15 @@ interface TelemetryOptions {
 export class Logger {
 
     name    : string;
-    level   : SeverityLevel;
+    options : LoggingOptions;
 
-    private tClient : ApplicationInsights.Client;
     private cClient : ConsoleLogger;
+    private tClient : ApplicationInsights.Client;
 
 	constructor(options: Options) {
 		this.name = options.name;
-        this.level = SeverityLevel.parse(options.level) || SeverityLevel.debug;
+        this.options = Object.assign({}, DEFAULT_LOGGING_OPTIONS, options.log);
+        this.options.messages = MessageLevel.parse(this.options.messages);
 
         if (options.console) {
             this.cClient = new ConsoleLogger(this.name, options.console);
@@ -50,7 +71,8 @@ export class Logger {
     // Message logging
     // --------------------------------------------------------------------------------------------
     debug(message: string) {
-        if (this.level > SeverityLevel.debug || !message || typeof message !== 'string') return;
+        if (this.options.messages > MessageLevel.debug) return;
+        if (!message || typeof message !== 'string') return;
 
         if (this.cClient) {
             this.cClient.debug(message);
@@ -62,7 +84,8 @@ export class Logger {
     }
 
     info(message: string) {
-        if (this.level > SeverityLevel.info || !message || typeof message !== 'string') return;
+        if (!this.options.messages || this.options.messages > MessageLevel.info) return;
+        if (!message || typeof message !== 'string') return;
 
         if (this.cClient) {
             this.cClient.info(message);
@@ -74,7 +97,8 @@ export class Logger {
     }
 
     warn(message: string) {
-        if (this.level > SeverityLevel.warning || !message || typeof message !== 'string') return;
+        if (!this.options.messages || this.options.messages > MessageLevel.warning) return;
+        if (!message || typeof message !== 'string') return;
 
         if (this.cClient) {
             this.cClient.warn(message);
@@ -88,7 +112,7 @@ export class Logger {
     // Error logging
     // --------------------------------------------------------------------------------------------
     error(error: Error) {
-        if (!error || !(error instanceof Error)) return;
+        if (!this.options.errors || !error || !(error instanceof Error)) return;
 
         if (this.cClient) {
             this.cClient.error(error);
@@ -102,7 +126,7 @@ export class Logger {
     // Event logging
     // --------------------------------------------------------------------------------------------
     log(event: string, properties?: { [key: string]: any }) {
-        if (typeof event !== 'string') return;
+        if (!this.options.events || typeof event !== 'string') return;
 
         if (this.cClient) {
             this.cClient.log(event, properties);
@@ -116,7 +140,7 @@ export class Logger {
     // Metric tracking
     // --------------------------------------------------------------------------------------------
     track(metric: string, value: number) {
-        if (!metric || typeof value !== 'number') return;
+        if (!this.options.metrics || !metric || typeof value !== 'number') return;
 
         if (this.cClient) { 
             this.cClient.track(metric, value);
@@ -130,7 +154,8 @@ export class Logger {
     // Service tracing
     // --------------------------------------------------------------------------------------------
     trace(service: string, command: string, duration: number, success?: boolean) {
-        if (typeof service !== 'string' || typeof command !== 'string' || typeof duration !== 'number') return;
+        if (!this.options.services || typeof duration !== 'number') return;
+        if (!service || typeof service !== 'string' || !command || typeof command !== 'string') return;
         success = (typeof success === 'boolean' ? success : true);
 
         if (this.cClient) {
@@ -145,7 +170,7 @@ export class Logger {
     // Request Logging
     // --------------------------------------------------------------------------------------------
     request(request: http.ServerRequest, response: http.ServerResponse) {
-        if (!request || !response) return;
+        if (!this.options.requests || !request || !response) return;
         
         if (this.cClient) {
             this.cClient.request(request, response);

@@ -1,11 +1,12 @@
 // SEVERITY LEVEL
 // ================================================================================================
-export enum SeverityLevel { debug = 1, info, warning, error }
-export namespace SeverityLevel {
-    export function parse(value: SeverityLevel | string): SeverityLevel {
+export enum MessageLevel { debug = 1, info, warning }
+export namespace MessageLevel {
+    export function parse(value: any): MessageLevel {
         if (!value) return;
         if (typeof value === 'number') return value;
-        if (typeof value === 'string') return SeverityLevel[value];
+        if (typeof value === 'string') return MessageLevel[value];
+        if (typeof value === 'boolean') return value ? MessageLevel.debug : undefined;
     }
 }
 

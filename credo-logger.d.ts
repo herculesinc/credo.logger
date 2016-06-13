@@ -3,9 +3,9 @@ declare module "@credo/logger" {
 	
 	// ENUMS
 	// ============================================================================================
-	export enum SeverityLevel { debug = 1, info, warning, error }
-	export namespace SeverityLevel {
-		export function parse(value: SeverityLevel | string): SeverityLevel;
+	export enum MessageLevel { debug = 10, info = 20, warning = 30 }
+	export namespace MessageLevel {
+		export function parse(value: MessageLevel | string): MessageLevel;
 	}
 
 	export type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'grey';
@@ -25,9 +25,18 @@ declare module "@credo/logger" {
 	// ============================================================================================
 	export interface Options {
 		name		: string;
-		level?		: SeverityLevel | string;
+		log?		: LoggingOptions;
 		console?	: ConsoleOptions | boolean;
 		telemetry?	: TelemetryOptions;
+	}
+
+	export interface LoggingOptions {
+		messages?	: MessageLevel | string | boolean;
+		errors?		: boolean;
+		events?		: boolean;
+		metrics?	: boolean;
+		services?	: boolean;
+		requests?	: boolean;
 	}
 
 	export interface ConsoleOptions {
@@ -39,20 +48,17 @@ declare module "@credo/logger" {
 	export interface PrefixOptions {
 		name?		: boolean;
 		time?		: boolean;
-		level?		: boolean;
+		stream?		: boolean;
 	}
 
 	interface ColorOptions {
-		levels?     : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
+		severity?   : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
 		services?	: { [service: string]: Color; };
 	}
 
 	export interface FormatOptions {
-		errors?		: 'message' | 'stack';
-		events?		: boolean;
-		metrics?	: boolean;
-		traces?		: boolean;
-		requests?	: boolean | 'dev' | 'short';
+		error?		: 'message' | 'stack';
+		request?	: 'dev' | 'short';
 	}
 
 	export interface TelemetryOptions {
@@ -65,7 +71,7 @@ declare module "@credo/logger" {
 	export class Logger {
 
 		name	: string;
-		level	: SeverityLevel;
+		options	: LoggingOptions;
 
 		constructor(options: Options);
 
