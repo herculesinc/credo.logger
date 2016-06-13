@@ -77,7 +77,7 @@ declare module "@credo/logger" {
 
 		log(event: string, properties?: { [key: string]: any });
 		track(metric: string, value: number);
-		trace(service: string, command: string, time: number, success?: boolean);
+		trace(service: string, command: string, duration: number, success?: boolean);
 
 		request(request: http.ServerRequest, response: http.ServerResponse);
 	}
