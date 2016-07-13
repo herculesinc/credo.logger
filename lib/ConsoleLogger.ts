@@ -204,7 +204,7 @@ function buildColorizer(optionsOrColor: ColorOptions | Color): Colorizer {
 
     if (typeof optionsOrColor === 'string') {
         return function(message: string, stream: ConsoleStream, service?: string): string {
-            return applyColor(message, optionsOrColor);
+            return applyColor(message, optionsOrColor as Color);
         };
     }
     else {
