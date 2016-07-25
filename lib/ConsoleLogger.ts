@@ -127,7 +127,7 @@ export class ConsoleLogger {
 
     // Request Logging
     // --------------------------------------------------------------------------------------------
-    request(request: http.ServerRequest, response: http.ServerResponse) {
+    request(request: http.IncomingMessage, response: http.ServerResponse) {
         const start = process.hrtime();
         onFinished(response, () => {
             const line = buildRequestLine(request, response, since(start), this.fOptions.request);
@@ -243,7 +243,7 @@ function buildRequestLine(request: any, response: any, duration: number, format:
     
     const address   = request.ip || (request.connection && request.connection.remoteAddress);
     const method    = request.method;
-    const url       = request.url;
+    const url       = request.path || request.url;
     const version   = request.httpVersion;
     const status    = response.statusCode;
     const length    = response.getHeader('content-length');

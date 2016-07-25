@@ -10,7 +10,8 @@ gulp.task('clean', function(cb) {
 // compile TypeScript files
 gulp.task('build', ['clean'], function (cb) {
   gulp.src('./package.json').pipe(gulp.dest('./bin'));
-  gulp.src('./.npmignore').pipe(gulp.dest('./bin'));
+  gulp.src('./credo-logger.d.ts').pipe(gulp.dest('./bin'));
+  gulp.src('../.settings/.npmignore').pipe(gulp.dest('./bin'));
   gulp.src('./README.md').pipe(gulp.dest('./bin'));
       
   exec('tsc -p .', function (err, stdout, stderr) {

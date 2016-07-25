@@ -139,8 +139,8 @@ exports.Logger = Logger;
 function validateTelemetryProvider(options) {
     const provider = options.provider;
     if (!provider)
-        throw new Error(`Telemetry provider is undefined`);
+        throw new TypeError(`Telemetry provider is undefined`);
     if (provider !== 'appinsights')
-        throw new Error(`Telemetry provider {${provider}} is not supported`);
+        throw new TypeError(`Telemetry provider {${provider}} is not supported`);
 }
 //# sourceMappingURL=index.js.map

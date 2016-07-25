@@ -182,7 +182,7 @@ function buildRequestLine(request, response, duration, format) {
         return;
     const address = request.ip || (request.connection && request.connection.remoteAddress);
     const method = request.method;
-    const url = request.url;
+    const url = request.path || request.url;
     const version = request.httpVersion;
     const status = response.statusCode;
     const length = response.getHeader('content-length');

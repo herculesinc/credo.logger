@@ -169,7 +169,7 @@ export class Logger {
 
     // Request Logging
     // --------------------------------------------------------------------------------------------
-    request(request: http.ServerRequest, response: http.ServerResponse) {
+    request(request: http.IncomingMessage, response: http.ServerResponse) {
         if (!this.options.requests || !request || !response) return;
         
         if (this.cClient) {
@@ -186,6 +186,6 @@ export class Logger {
 // ================================================================================================
 function validateTelemetryProvider(options: TelemetryOptions) {
     const provider = options.provider;
-    if (!provider) throw new Error(`Telemetry provider is undefined`);
-    if (provider !== 'appinsights') throw new Error(`Telemetry provider {${provider}} is not supported`);
+    if (!provider) throw new TypeError(`Telemetry provider is undefined`);
+    if (provider !== 'appinsights') throw new TypeError(`Telemetry provider {${provider}} is not supported`);
 }
