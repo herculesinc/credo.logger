@@ -20,6 +20,8 @@ const DEFAULT_LOGGING_OPTIONS: LoggingOptions = {
     requests	: true
 };
 
+var instance: Logger;
+
 // ENUMS AND INTERFACES
 // ================================================================================================
 export interface Options {
@@ -180,6 +182,61 @@ export class Logger {
             this.tClient.trackRequest(request, response);
         }
     }
+}
+
+// SINGLETON MEMBERS
+// ================================================================================================
+export function configure(options: Options): Logger {
+    if (instance) throw new TypeError('Instance logger has already been configured');
+    instance = new Logger(options);
+    return instance;
+}
+
+export function getInstance(): Logger {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    return instance;
+}
+
+// PASS-THROUGH FUNCTIONS
+// --------------------------------------------------------------------------------------------
+export function debug(message: string) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.debug(message);
+}
+
+export function info(message: string) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.info(message);
+}
+
+export function warn(message: string) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.warn(message);
+}
+
+export function error(error: Error) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.error(error);
+}
+
+export function log(event: string, properties?: { [key: string]: any }) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.log(event, properties);
+}
+
+export function track(metric: string, value: number) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.track(metric, value);
+}
+
+export function trace(service: string, command: string, duration: number, success?: boolean) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.trace(service, command, duration, success);
+}
+
+export function request(request: http.IncomingMessage, response: http.ServerResponse) {
+    if (!instance) throw new TypeError('Instance logger has not yet been configured');
+    instance.request(request, response);
 }
 
 // HELPER FUNCTIONS

@@ -87,4 +87,21 @@ declare module "@credo/logger" {
 
 		request(request: http.IncomingMessage, response: http.ServerResponse);
 	}
+
+	// SINGLETON MEMBERS
+	// ============================================================================================
+	export function configure(options: Options): Logger;
+	export function getInstance(): Logger;
+
+	export function debug(message: string);
+	export function info (message: string);
+	export function warn(message: string);
+
+	export function error(error: Error);
+
+ 	export function log(event: string, properties?: { [key: string]: any });
+	export function track(metric: string, value: number);
+	export function trace(service: string, command: string, duration: number, success?: boolean);
+
+	export function request(request: http.IncomingMessage, response: http.ServerResponse);
 }

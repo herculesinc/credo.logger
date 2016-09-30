@@ -1,6 +1,6 @@
 {
   "name": "@credo/logger",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Logger for Credo application",
   "main": "index.js",
   "typings": "credo-logger.d.ts",
@@ -14,7 +14,7 @@
     "email": "developers@credo360.com"
   },
   "engines": {
-    "node": "6.0.0"
+    "node": "6.4.0"
   },
   "dependencies": {
     "applicationinsights": "0.15.x",
