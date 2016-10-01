@@ -35,7 +35,7 @@ declare module "@credo/logger" {
 		errors?		: boolean;
 		events?		: boolean;
 		metrics?	: boolean;
-		services?	: boolean;
+		services?	: boolean | string[];
 		requests?	: boolean;
 	}
 
@@ -53,7 +53,7 @@ declare module "@credo/logger" {
 
 	interface ColorOptions {
 		severity?   : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
-		services?	: { [service: string]: Color; };
+		services?	: { [service: string]: Color | string; };
 	}
 
 	export interface FormatOptions {

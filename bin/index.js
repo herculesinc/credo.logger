@@ -31,6 +31,9 @@ class Logger {
             validateTelemetryProvider(options.telemetry);
             this.tClient = ApplicationInsights.getClient(options.telemetry.key);
         }
+        if (Array.isArray(this.options.services)) {
+            this.serviceWhitelist = new Set(this.options.services);
+        }
     }
     // Message logging
     // --------------------------------------------------------------------------------------------
@@ -109,9 +112,9 @@ class Logger {
     // Service tracing
     // --------------------------------------------------------------------------------------------
     trace(service, command, duration, success) {
-        if (!this.options.services || typeof duration !== 'number')
+        if (!this.options.services || (this.serviceWhitelist && !this.serviceWhitelist.has(service)))
             return;
-        if (!service || typeof service !== 'string' || !command || typeof command !== 'string')
+        if (typeof service !== 'string' || typeof command !== 'string' || typeof duration !== 'number')
             return;
         success = (typeof success === 'boolean' ? success : true);
         if (this.cClient) {

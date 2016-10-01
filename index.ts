@@ -36,7 +36,7 @@ export interface LoggingOptions {
     errors?		: boolean;
     events?		: boolean;
     metrics?	: boolean;
-    services?	: boolean;
+    services?	: boolean | string[];
     requests?	: boolean;
 }
 
@@ -51,9 +51,11 @@ export class Logger {
 
     name    : string;
     options : LoggingOptions;
-
+    
     private cClient : ConsoleLogger;
     private tClient : ApplicationInsights.Client;
+
+    private serviceWhitelist: Set<string>;
 
 	constructor(options: Options) {
 		this.name = options.name;
@@ -67,6 +69,10 @@ export class Logger {
         if (options.telemetry) {
             validateTelemetryProvider(options.telemetry);
             this.tClient = ApplicationInsights.getClient(options.telemetry.key);
+        }
+
+        if (Array.isArray(this.options.services)) {
+            this.serviceWhitelist = new Set(this.options.services);
         }
 	}
 
@@ -156,8 +162,8 @@ export class Logger {
     // Service tracing
     // --------------------------------------------------------------------------------------------
     trace(service: string, command: string, duration: number, success?: boolean) {
-        if (!this.options.services || typeof duration !== 'number') return;
-        if (!service || typeof service !== 'string' || !command || typeof command !== 'string') return;
+        if (!this.options.services || (this.serviceWhitelist && !this.serviceWhitelist.has(service))) return;
+        if (typeof service !== 'string' || typeof command !== 'string' || typeof duration !== 'number') return;
         success = (typeof success === 'boolean' ? success : true);
 
         if (this.cClient) {

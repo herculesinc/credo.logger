@@ -38,7 +38,7 @@ interface PrefixOptions {
 
 interface ColorOptions {
     severity?   : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
-    services?   : { [service: string]: Color; };
+    services?   : { [service: string]: Color | string; };
 }
 
 interface FormatOptions {
