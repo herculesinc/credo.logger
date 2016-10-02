@@ -142,14 +142,14 @@ exports.Logger = Logger;
 // ================================================================================================
 function configure(options) {
     if (instance)
-        throw new TypeError('Instance logger has already been configured');
+        throw new TypeError('Global logger has already been configured');
     instance = new Logger(options);
     return instance;
 }
 exports.configure = configure;
 function getInstance() {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     return instance;
 }
 exports.getInstance = getInstance;
@@ -157,49 +157,49 @@ exports.getInstance = getInstance;
 // --------------------------------------------------------------------------------------------
 function debug(message) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.debug(message);
 }
 exports.debug = debug;
 function info(message) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.info(message);
 }
 exports.info = info;
 function warn(message) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.warn(message);
 }
 exports.warn = warn;
 function error(error) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.error(error);
 }
 exports.error = error;
 function log(event, properties) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.log(event, properties);
 }
 exports.log = log;
 function track(metric, value) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.track(metric, value);
 }
 exports.track = track;
 function trace(service, command, duration, success) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.trace(service, command, duration, success);
 }
 exports.trace = trace;
 function request(request, response) {
     if (!instance)
-        throw new TypeError('Instance logger has not yet been configured');
+        throw new TypeError('Global logger has not yet been configured');
     instance.request(request, response);
 }
 exports.request = request;
