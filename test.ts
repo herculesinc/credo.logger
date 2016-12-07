@@ -23,12 +23,13 @@ const options = {
 
 const logger = new Logger(options);
 
-logger.debug('testing');
-logger.trace('email', 'send message', 100, true);
+logger.info('testing5');
+logger.info('testing6', 'dev-db');
+//logger.trace('email', 'send message', 100, true);
 //logger.increaseIndent();
-logger.debug('testing2');
+//logger.debug('testing2');
 //logger.increaseIndent();
-logger.debug('testing3');
+//logger.debug('testing3');
 //logger.decreaseIndent();
 //logger.decreaseIndent();
-logger.debug('testing4');
+//logger.debug('testing4');

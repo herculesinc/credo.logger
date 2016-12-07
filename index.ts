@@ -27,6 +27,7 @@ var instance: Logger;
 export interface Options {
     name        : string;
     log?		: LoggingOptions;
+    sources?    : string[]; 
     console?    : ConsoleOptions | boolean;
     telemetry?  : TelemetryOptions;
 }
@@ -36,7 +37,7 @@ export interface LoggingOptions {
     errors?		: boolean;
     events?		: boolean;
     metrics?	: boolean;
-    services?	: boolean | string[];
+    services?	: boolean;
     requests?	: boolean;
 }
 
@@ -55,7 +56,7 @@ export class Logger {
     private cClient : ConsoleLogger;
     private tClient : ApplicationInsights.Client;
 
-    private serviceWhitelist: Set<string>;
+    private whitelist: Set<string>;
 
 	constructor(options: Options) {
 		this.name = options.name;
@@ -71,49 +72,62 @@ export class Logger {
             this.tClient = ApplicationInsights.getClient(options.telemetry.key);
         }
 
-        if (Array.isArray(this.options.services)) {
-            this.serviceWhitelist = new Set(this.options.services);
+        if (options.sources) {
+            if (!Array.isArray(options.sources)) throw new TypeError('sources option must be an array');
+            this.whitelist = new Set(options.sources);
         }
 	}
 
     // Message logging
     // --------------------------------------------------------------------------------------------
-    debug(message: string) {
+    debug(message: string, source?: string) {
         if (this.options.messages > MessageLevel.debug) return;
         if (!message || typeof message !== 'string') return;
+        if (source && this.whitelist && !this.whitelist.has(source)) return;
 
         if (this.cClient) {
-            this.cClient.debug(message);
+            this.cClient.debug(source ? '[' + source + ']: ' + message : message);
         }
         
         if (this.tClient) {
-            this.tClient.trackTrace(message, ContractsModule.SeverityLevel.Verbose);
+            this.tClient.trackTrace(message, ContractsModule.SeverityLevel.Verbose, source
+                ? { name: this.name, source: source }
+                : { name: this.name }
+            );
         }
     }
 
-    info(message: string) {
+    info(message: string, source?: string) {
         if (!this.options.messages || this.options.messages > MessageLevel.info) return;
         if (!message || typeof message !== 'string') return;
+        if (source && this.whitelist && !this.whitelist.has(source)) return;
 
         if (this.cClient) {
-            this.cClient.info(message);
+            this.cClient.info(source ? '[' + source + ']: ' + message : message);
         }
 
         if (this.tClient) {
-            this.tClient.trackTrace(message, ContractsModule.SeverityLevel.Information);
+            this.tClient.trackTrace(message, ContractsModule.SeverityLevel.Information, source
+                ? { name: this.name, source: source }
+                : { name: this.name }
+            );
         }
     }
 
-    warn(message: string) {
+    warn(message: string, source?: string) {
         if (!this.options.messages || this.options.messages > MessageLevel.warning) return;
         if (!message || typeof message !== 'string') return;
+        if (source && this.whitelist && !this.whitelist.has(source)) return;
 
         if (this.cClient) {
-            this.cClient.warn(message);
+            this.cClient.warn(source ? '[' + source + ']: ' + message : message);
         }
 
         if (this.tClient) {
-            this.tClient.trackTrace(message, ContractsModule.SeverityLevel.Warning);
+            this.tClient.trackTrace(message, ContractsModule.SeverityLevel.Warning, source
+                ? { name: this.name, source: source }
+                : { name: this.name }
+            );
         }
     }
 
@@ -161,17 +175,17 @@ export class Logger {
 
     // Service tracing
     // --------------------------------------------------------------------------------------------
-    trace(service: string, command: string, duration: number, success?: boolean) {
-        if (!this.options.services || (this.serviceWhitelist && !this.serviceWhitelist.has(service))) return;
-        if (typeof service !== 'string' || typeof command !== 'string' || typeof duration !== 'number') return;
+    trace(source: string, command: string, duration: number, success?: boolean) {
+        if (!this.options.services || (this.whitelist && !this.whitelist.has(source))) return;
+        if (typeof source !== 'string' || typeof command !== 'string' || typeof duration !== 'number') return;
         success = (typeof success === 'boolean' ? success : true);
 
         if (this.cClient) {
-            this.cClient.trace(service, command, duration, success);
+            this.cClient.trace(source, command, duration, success);
         }
 
         if (this.tClient) {
-            this.tClient.trackDependency(service, command, duration, success);
+            this.tClient.trackDependency(source, command, duration, success);
         }
     }
 
@@ -205,19 +219,19 @@ export function getInstance(): Logger {
 
 // PASS-THROUGH FUNCTIONS
 // --------------------------------------------------------------------------------------------
-export function debug(message: string) {
+export function debug(message: string, source?: string) {
     if (!instance) throw new TypeError('Global logger has not yet been configured');
-    instance.debug(message);
+    instance.debug(message, source);
 }
 
-export function info(message: string) {
+export function info(message: string, source?: string) {
     if (!instance) throw new TypeError('Global logger has not yet been configured');
-    instance.info(message);
+    instance.info(message, source);
 }
 
-export function warn(message: string) {
+export function warn(message: string, source?: string) {
     if (!instance) throw new TypeError('Global logger has not yet been configured');
-    instance.warn(message);
+    instance.warn(message, source);
 }
 
 export function error(error: Error) {
@@ -235,9 +249,9 @@ export function track(metric: string, value: number) {
     instance.track(metric, value);
 }
 
-export function trace(service: string, command: string, duration: number, success?: boolean) {
+export function trace(source: string, command: string, duration: number, success?: boolean) {
     if (!instance) throw new TypeError('Global logger has not yet been configured');
-    instance.trace(service, command, duration, success);
+    instance.trace(source, command, duration, success);
 }
 
 export function request(request: http.IncomingMessage, response: http.ServerResponse) {

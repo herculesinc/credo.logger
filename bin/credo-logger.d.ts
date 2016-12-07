@@ -21,11 +21,12 @@ declare module "@credo/logger" {
 		grey    : Color;
 	};
 
-	// ENUMS
+	// INTERFACES
 	// ============================================================================================
 	export interface Options {
 		name		: string;
 		log?		: LoggingOptions;
+		sources?	: string[];
 		console?	: ConsoleOptions | boolean;
 		telemetry?	: TelemetryOptions;
 	}
@@ -35,10 +36,12 @@ declare module "@credo/logger" {
 		errors?		: boolean;
 		events?		: boolean;
 		metrics?	: boolean;
-		services?	: boolean | string[];
+		services?	: boolean;
 		requests?	: boolean;
 	}
 
+	// CONSOLE OPTIONS
+	// --------------------------------------------------------------------------------------------
 	export interface ConsoleOptions {
 		prefix?		: PrefixOptions;
 		formats?	: FormatOptions;
@@ -53,7 +56,7 @@ declare module "@credo/logger" {
 
 	interface ColorOptions {
 		severity?   : { debug?: Color; info?: Color; warning?: Color; error?: Color; };
-		services?	: { [service: string]: Color | string; };
+		sources?	: { [source: string]: Color | string; };
 	}
 
 	export interface FormatOptions {
@@ -61,6 +64,8 @@ declare module "@credo/logger" {
 		request?	: 'dev' | 'short';
 	}
 
+	// TELEMETRY OPTIONS
+	// --------------------------------------------------------------------------------------------
 	export interface TelemetryOptions {
 		provider	: 'appinsights';
 		key			: string;
@@ -75,15 +80,15 @@ declare module "@credo/logger" {
 
 		constructor(options: Options);
 
-		debug(message: string);
-		info (message: string);
-		warn(message: string);
+		debug(message: string, source?: string);
+		info (message: string, source?: string);
+		warn (message: string, source?: string);
 
 		error(error: Error);
 
 		log(event: string, properties?: { [key: string]: any });
 		track(metric: string, value: number);
-		trace(service: string, command: string, duration: number, success?: boolean);
+		trace(source: string, command: string, duration: number, success?: boolean);
 
 		request(request: http.IncomingMessage, response: http.ServerResponse);
 	}
@@ -93,15 +98,15 @@ declare module "@credo/logger" {
 	export function configure(options: Options): Logger;
 	export function getInstance(): Logger;
 
-	export function debug(message: string);
-	export function info (message: string);
-	export function warn(message: string);
+	export function debug(message: string, source?: string);
+	export function info (message: string, source?: string);
+	export function warn (message: string, source?: string);
 
 	export function error(error: Error);
 
  	export function log(event: string, properties?: { [key: string]: any });
 	export function track(metric: string, value: number);
-	export function trace(service: string, command: string, duration: number, success?: boolean);
+	export function trace(source: string, command: string, duration: number, success?: boolean);
 
 	export function request(request: http.IncomingMessage, response: http.ServerResponse);
 }

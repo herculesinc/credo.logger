@@ -31,46 +31,60 @@ class Logger {
             validateTelemetryProvider(options.telemetry);
             this.tClient = ApplicationInsights.getClient(options.telemetry.key);
         }
-        if (Array.isArray(this.options.services)) {
-            this.serviceWhitelist = new Set(this.options.services);
+        if (options.sources) {
+            if (!Array.isArray(options.sources))
+                throw new TypeError('sources option must be an array');
+            this.whitelist = new Set(options.sources);
         }
     }
     // Message logging
     // --------------------------------------------------------------------------------------------
-    debug(message) {
+    debug(message, source) {
         if (this.options.messages > common_1.MessageLevel.debug)
             return;
         if (!message || typeof message !== 'string')
             return;
+        if (source && this.whitelist && !this.whitelist.has(source))
+            return;
         if (this.cClient) {
-            this.cClient.debug(message);
+            this.cClient.debug(source ? '[' + source + ']: ' + message : message);
         }
         if (this.tClient) {
-            this.tClient.trackTrace(message, 0 /* Verbose */);
+            this.tClient.trackTrace(message, 0 /* Verbose */, source
+                ? { name: this.name, source: source }
+                : { name: this.name });
         }
     }
-    info(message) {
+    info(message, source) {
         if (!this.options.messages || this.options.messages > common_1.MessageLevel.info)
             return;
         if (!message || typeof message !== 'string')
             return;
+        if (source && this.whitelist && !this.whitelist.has(source))
+            return;
         if (this.cClient) {
-            this.cClient.info(message);
+            this.cClient.info(source ? '[' + source + ']: ' + message : message);
         }
         if (this.tClient) {
-            this.tClient.trackTrace(message, 1 /* Information */);
+            this.tClient.trackTrace(message, 1 /* Information */, source
+                ? { name: this.name, source: source }
+                : { name: this.name });
         }
     }
-    warn(message) {
+    warn(message, source) {
         if (!this.options.messages || this.options.messages > common_1.MessageLevel.warning)
             return;
         if (!message || typeof message !== 'string')
             return;
+        if (source && this.whitelist && !this.whitelist.has(source))
+            return;
         if (this.cClient) {
-            this.cClient.warn(message);
+            this.cClient.warn(source ? '[' + source + ']: ' + message : message);
         }
         if (this.tClient) {
-            this.tClient.trackTrace(message, 2 /* Warning */);
+            this.tClient.trackTrace(message, 2 /* Warning */, source
+                ? { name: this.name, source: source }
+                : { name: this.name });
         }
     }
     // Error logging
@@ -111,17 +125,17 @@ class Logger {
     }
     // Service tracing
     // --------------------------------------------------------------------------------------------
-    trace(service, command, duration, success) {
-        if (!this.options.services || (this.serviceWhitelist && !this.serviceWhitelist.has(service)))
+    trace(source, command, duration, success) {
+        if (!this.options.services || (this.whitelist && !this.whitelist.has(source)))
             return;
-        if (typeof service !== 'string' || typeof command !== 'string' || typeof duration !== 'number')
+        if (typeof source !== 'string' || typeof command !== 'string' || typeof duration !== 'number')
             return;
         success = (typeof success === 'boolean' ? success : true);
         if (this.cClient) {
-            this.cClient.trace(service, command, duration, success);
+            this.cClient.trace(source, command, duration, success);
         }
         if (this.tClient) {
-            this.tClient.trackDependency(service, command, duration, success);
+            this.tClient.trackDependency(source, command, duration, success);
         }
     }
     // Request Logging
@@ -155,22 +169,22 @@ function getInstance() {
 exports.getInstance = getInstance;
 // PASS-THROUGH FUNCTIONS
 // --------------------------------------------------------------------------------------------
-function debug(message) {
+function debug(message, source) {
     if (!instance)
         throw new TypeError('Global logger has not yet been configured');
-    instance.debug(message);
+    instance.debug(message, source);
 }
 exports.debug = debug;
-function info(message) {
+function info(message, source) {
     if (!instance)
         throw new TypeError('Global logger has not yet been configured');
-    instance.info(message);
+    instance.info(message, source);
 }
 exports.info = info;
-function warn(message) {
+function warn(message, source) {
     if (!instance)
         throw new TypeError('Global logger has not yet been configured');
-    instance.warn(message);
+    instance.warn(message, source);
 }
 exports.warn = warn;
 function error(error) {
@@ -191,10 +205,10 @@ function track(metric, value) {
     instance.track(metric, value);
 }
 exports.track = track;
-function trace(service, command, duration, success) {
+function trace(source, command, duration, success) {
     if (!instance)
         throw new TypeError('Global logger has not yet been configured');
-    instance.trace(service, command, duration, success);
+    instance.trace(source, command, duration, success);
 }
 exports.trace = trace;
 function request(request, response) {
