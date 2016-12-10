@@ -1,11 +1,9 @@
 "use strict";
-const ApplicationInsights = require('applicationinsights');
-const common_1 = require('./lib/common');
+const ApplicationInsights = require("applicationinsights");
+const common_1 = require("./lib/common");
 exports.MessageLevel = common_1.MessageLevel;
 exports.Color = common_1.Color;
-const ConsoleLogger_1 = require('./lib/ConsoleLogger');
-// RE-EXPORTS
-// ================================================================================================
+const ConsoleLogger_1 = require("./lib/ConsoleLogger");
 // MODULE VARIABLES
 // ================================================================================================
 const DEFAULT_LOGGING_OPTIONS = {
@@ -47,7 +45,7 @@ class Logger {
         if (source && this.whitelist && !this.whitelist.has(source))
             return;
         if (this.cClient) {
-            this.cClient.debug(source ? '[' + source + ']: ' + message : message);
+            this.cClient.debug(message, source);
         }
         if (this.tClient) {
             this.tClient.trackTrace(message, 0 /* Verbose */, source
@@ -63,7 +61,7 @@ class Logger {
         if (source && this.whitelist && !this.whitelist.has(source))
             return;
         if (this.cClient) {
-            this.cClient.info(source ? '[' + source + ']: ' + message : message);
+            this.cClient.info(message, source);
         }
         if (this.tClient) {
             this.tClient.trackTrace(message, 1 /* Information */, source
@@ -79,7 +77,7 @@ class Logger {
         if (source && this.whitelist && !this.whitelist.has(source))
             return;
         if (this.cClient) {
-            this.cClient.warn(source ? '[' + source + ']: ' + message : message);
+            this.cClient.warn(message, source);
         }
         if (this.tClient) {
             this.tClient.trackTrace(message, 2 /* Warning */, source

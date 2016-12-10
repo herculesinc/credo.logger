@@ -1,5 +1,5 @@
 "use strict";
-const index_1 = require('./index');
+const index_1 = require("./index");
 const options = {
     name: "dev-logger",
     log: {

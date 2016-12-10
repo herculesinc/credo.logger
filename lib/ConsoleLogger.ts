@@ -82,16 +82,16 @@ export class ConsoleLogger {
 
     // Message logging
     // --------------------------------------------------------------------------------------------
-    debug(message: string) {
-        this.logToConsole(message, ConsoleStream.debug);
+    debug(message: string, source?: string) {
+        this.logToConsole(message, ConsoleStream.debug, source);
     }
 
-    info(message: string) {
-        this.logToConsole(message, ConsoleStream.info);
+    info(message: string, source?: string) {
+        this.logToConsole(message, ConsoleStream.info, source);
     }
 
-    warn(message: string) {
-        this.logToConsole(message, ConsoleStream.warning);
+    warn(message: string, source?: string) {
+        this.logToConsole(message, ConsoleStream.warning, source);
     }
 
     // Error logging
@@ -137,17 +137,17 @@ export class ConsoleLogger {
 
     // Private Methods
     // --------------------------------------------------------------------------------------------
-    private logToConsole(message: string, stream: ConsoleStream, service?: string) {
+    private logToConsole(message: string, stream: ConsoleStream, source?: string) {
         if (!message || !stream) return;
 
         // build prefix
         if (this.prefixer) {
-            message = `${this.prefixer(stream, service)}: ${message}`;
+            message = `${this.prefixer(stream, source)}: ${message}`;
         }
 
         // colorize the message
         if (this.colorizer) {
-            message = this.colorizer(message, stream, service);
+            message = this.colorizer(message, stream, source);
         }
 
         // print the message
@@ -180,7 +180,7 @@ function buildPrefixer(optionsOrFlag: PrefixOptions | boolean, name: string): Pr
         if (!options.time && !options.name && !options.stream) return;
     }
 
-    return function(stream: ConsoleStream, service?: string) {
+    return function(stream: ConsoleStream, source?: string) {
         let prefix = (options.time ? `[${new Date().toISOString()}]` : '');
         
         if (options.name) {
@@ -191,8 +191,8 @@ function buildPrefixer(optionsOrFlag: PrefixOptions | boolean, name: string): Pr
             prefix += `[${ConsoleStream[stream]}]`;
         }
 
-        if (service) {
-            prefix += `[${service}]`;
+        if (source) {
+            prefix += `[${source}]`;
         }
 
         return prefix;

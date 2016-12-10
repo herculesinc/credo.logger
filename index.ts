@@ -86,7 +86,7 @@ export class Logger {
         if (source && this.whitelist && !this.whitelist.has(source)) return;
 
         if (this.cClient) {
-            this.cClient.debug(source ? '[' + source + ']: ' + message : message);
+            this.cClient.debug(message, source);
         }
         
         if (this.tClient) {
@@ -103,7 +103,7 @@ export class Logger {
         if (source && this.whitelist && !this.whitelist.has(source)) return;
 
         if (this.cClient) {
-            this.cClient.info(source ? '[' + source + ']: ' + message : message);
+            this.cClient.info(message, source);
         }
 
         if (this.tClient) {
@@ -120,7 +120,7 @@ export class Logger {
         if (source && this.whitelist && !this.whitelist.has(source)) return;
 
         if (this.cClient) {
-            this.cClient.warn(source ? '[' + source + ']: ' + message : message);
+            this.cClient.warn(message, source);
         }
 
         if (this.tClient) {

@@ -1,13 +1,12 @@
 "use strict";
 // SEVERITY LEVEL
 // ================================================================================================
+var MessageLevel;
 (function (MessageLevel) {
     MessageLevel[MessageLevel["debug"] = 1] = "debug";
     MessageLevel[MessageLevel["info"] = 2] = "info";
     MessageLevel[MessageLevel["warning"] = 3] = "warning";
-})(exports.MessageLevel || (exports.MessageLevel = {}));
-var MessageLevel = exports.MessageLevel;
-var MessageLevel;
+})(MessageLevel = exports.MessageLevel || (exports.MessageLevel = {}));
 (function (MessageLevel) {
     function parse(value) {
         if (!value)

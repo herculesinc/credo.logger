@@ -1,8 +1,8 @@
 "use strict";
-const colors = require('colors');
-const onFinished = require('on-finished');
-const common_1 = require('./common');
-const util_1 = require('./util');
+const colors = require("colors");
+const onFinished = require("on-finished");
+const common_1 = require("./common");
+const util_1 = require("./util");
 // MODULE VARIABLES
 // ================================================================================================
 const DEFAULT_PREFIX_OPTIONS = {
@@ -37,14 +37,14 @@ class ConsoleLogger {
     }
     // Message logging
     // --------------------------------------------------------------------------------------------
-    debug(message) {
-        this.logToConsole(message, ConsoleStream.debug);
+    debug(message, source) {
+        this.logToConsole(message, ConsoleStream.debug, source);
     }
-    info(message) {
-        this.logToConsole(message, ConsoleStream.info);
+    info(message, source) {
+        this.logToConsole(message, ConsoleStream.info, source);
     }
-    warn(message) {
-        this.logToConsole(message, ConsoleStream.warning);
+    warn(message, source) {
+        this.logToConsole(message, ConsoleStream.warning, source);
     }
     // Error logging
     // --------------------------------------------------------------------------------------------
@@ -84,16 +84,16 @@ class ConsoleLogger {
     }
     // Private Methods
     // --------------------------------------------------------------------------------------------
-    logToConsole(message, stream, service) {
+    logToConsole(message, stream, source) {
         if (!message || !stream)
             return;
         // build prefix
         if (this.prefixer) {
-            message = `${this.prefixer(stream, service)}: ${message}`;
+            message = `${this.prefixer(stream, source)}: ${message}`;
         }
         // colorize the message
         if (this.colorizer) {
-            message = this.colorizer(message, stream, service);
+            message = this.colorizer(message, stream, source);
         }
         // print the message
         switch (stream) {
@@ -126,7 +126,7 @@ function buildPrefixer(optionsOrFlag, name) {
         if (!options.time && !options.name && !options.stream)
             return;
     }
-    return function (stream, service) {
+    return function (stream, source) {
         let prefix = (options.time ? `[${new Date().toISOString()}]` : '');
         if (options.name) {
             prefix += `[${name}]`;
@@ -134,8 +134,8 @@ function buildPrefixer(optionsOrFlag, name) {
         if (options.stream) {
             prefix += `[${ConsoleStream[stream]}]`;
         }
-        if (service) {
-            prefix += `[${service}]`;
+        if (source) {
+            prefix += `[${source}]`;
         }
         return prefix;
     };
