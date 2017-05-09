@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const ApplicationInsights = require("applicationinsights");
 const common_1 = require("./lib/common");
 exports.MessageLevel = common_1.MessageLevel;
@@ -146,6 +147,16 @@ class Logger {
         }
         if (this.tClient) {
             this.tClient.trackRequest(request, response);
+        }
+    }
+    // Flush Telemetry
+    // --------------------------------------------------------------------------------------------
+    flush(callback) {
+        if (this.tClient) {
+            this.tClient.sendPendingData(callback);
+        }
+        else {
+            callback();
         }
     }
 }

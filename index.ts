@@ -202,6 +202,17 @@ export class Logger {
             this.tClient.trackRequest(request, response);
         }
     }
+
+    // Flush Telemetry
+    // --------------------------------------------------------------------------------------------
+    flush(callback: () => void) {
+        if (this.tClient) {
+            this.tClient.sendPendingData(callback);
+        }
+        else {
+            callback();
+        }
+    }
 }
 
 // SINGLETON MEMBERS

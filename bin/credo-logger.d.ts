@@ -91,6 +91,8 @@ declare module "@credo/logger" {
 		trace(source: string, command: string, duration: number, success?: boolean);
 
 		request(request: http.IncomingMessage, response: http.ServerResponse);
+
+		flush(callback: () => void);
 	}
 
 	// SINGLETON MEMBERS

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const colors = require("colors");
 const onFinished = require("on-finished");
 const common_1 = require("./common");
