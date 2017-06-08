@@ -92,7 +92,7 @@ declare module "@credo/logger" {
 
 		request(request: http.IncomingMessage, response: http.ServerResponse);
 
-		flush(callback: () => void);
+		flush(callback: (response?: any) => void);
 	}
 
 	// SINGLETON MEMBERS

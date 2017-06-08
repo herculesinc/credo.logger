@@ -205,7 +205,7 @@ export class Logger {
 
     // Flush Telemetry
     // --------------------------------------------------------------------------------------------
-    flush(callback: () => void) {
+    flush(callback: (response?: any) => void) {
         if (this.tClient) {
             this.tClient.sendPendingData(callback);
         }
